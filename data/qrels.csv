@@ -1,0 +1,18 @@
+query,doc_id,relevance
+bm25 ranking,d02,3
+bm25 ranking,d16,2
+bm25 ranking,d10,2
+web crawler,d03,3
+web crawler,d15,3
+web crawler,d07,1
+duplicate documents,d07,3
+duplicate documents,d18,2
+search evaluation,d04,3
+search evaluation,d16,3
+recommendation system,d14,3
+recommendation system,d05,2
+recommendation system,d06,2
+text preprocessing,d11,3
+text preprocessing,d12,2
+pagerank,d08,3
+pagerank,d09,2

@@ -1,0 +1,20 @@
+doc_id,title,url,source,author,published,category
+d01,Neural Information Retrieval Foundations,https://example.org/ir/neural-retrieval,Open research notes,A. Rao,2025-01-12,Information Retrieval
+d02,Practical BM25 for Product Search,https://example.org/search/bm25,Engineering blog,M. Chen,2025-02-03,Search Engineering
+d03,Web Crawling Ethics and Robots Rules,https://example.org/web/crawling-ethics,Web standards guide,S. Iyer,2024-11-18,Web Crawling
+d04,Evaluating Search with NDCG and MRR,https://example.org/ir/evaluation,Open textbook,J. Martin,2025-03-08,Evaluation
+d05,Content Based Movie Recommendation,https://example.org/recs/content-based,Data science journal,N. Kumar,2024-10-26,Recommendation
+d06,Collaborative Filtering in Sparse Data,https://example.org/recs/collaborative,ML handbook,L. Shah,2025-01-29,Recommendation
+d07,Duplicate Detection with Shingling,https://example.org/data/duplicates,Research digest,R. Singh,2025-02-20,Data Quality
+d08,PageRank Explained Through Link Graphs,https://example.org/graphs/pagerank,Algorithms library,P. Das,2024-12-04,Ranking
+d09,HITS Authorities and Hubs,https://example.org/graphs/hits,Algorithms library,P. Das,2024-12-11,Ranking
+d10,Query Expansion with Pseudo Relevance Feedback,https://example.org/search/query-expansion,Search Engineering,E. Wilson,2025-03-22,Search Engineering
+d11,Text Preprocessing Choices Matter,https://example.org/nlp/preprocessing,Applied NLP review,K. Bose,2024-09-15,Text Mining
+d12,Keyword Extraction Using TF IDF,https://example.org/nlp/keywords,Open research notes,A. Rao,2025-01-07,Text Mining
+d13,Building a Streamlit Analytics Dashboard,https://example.org/apps/streamlit-dashboard,Developer guide,T. Ali,2025-02-28,Application Development
+d14,Hybrid Recommenders for News Discovery,https://example.org/recs/hybrid-news,Data science journal,N. Kumar,2025-03-15,Recommendation
+d15,Crawl Frontier Design for Polite Collection,https://example.org/web/crawl-frontier,Web standards guide,S. Iyer,2025-01-31,Web Crawling
+d16,Precision Recall Tradeoffs in Retrieval,https://example.org/ir/precision-recall,Open textbook,J. Martin,2024-08-21,Evaluation
+d17,Semantic Search with Dense Embeddings,https://example.org/ir/semantic-search,ML handbook,L. Shah,2025-04-02,Information Retrieval
+d18,Metadata Schemas for Document Collections,https://example.org/data/metadata,Data management notes,C. Roy,2024-12-19,Data Quality
+
