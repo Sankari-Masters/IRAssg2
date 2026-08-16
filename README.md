@@ -375,7 +375,7 @@ The final submission will include screenshots captured from the BITS Virtual Lab
 ### Performance
 
 - **Search Latency:** Measured dynamically by the application; depends on machine, Streamlit environment, corpus size, and query complexity
-- **Index Build Time:** < 100 ms (18 documents, Balanced preprocessing)
+- **Index Build Time:** The supplied 18-document corpus is small enough for interactive index construction; formal latency is environment-dependent
 - **Classification Accuracy:** Dynamically reported by the Text Mining dashboard; depends on corpus size and balance
 - **Scalability:** O(n²) near-duplicate detection suitable for corpora up to ~1,000 documents
 
