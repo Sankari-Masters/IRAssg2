@@ -573,7 +573,10 @@ elif page == "Evaluation":
     inspected_query = st.selectbox("Judged query", sorted(qrels["query"].unique()))
     show_strategy = st.selectbox("Inspect strategy", ["BM25", "TF-IDF", "Hybrid (BM25 + PageRank)"])
     result, _ = ranked_results(inspected_query, current, index, mode, show_strategy)
-    judged = dict(zip(qrels[qrels.query == inspected_query].doc_id, qrels[qrels.query == inspected_query].relevance))
+    judged = dict(zip(
+        qrels.loc[qrels["query"] == inspected_query, "doc_id"],
+        qrels.loc[qrels["query"] == inspected_query, "relevance"]
+    ))
     display = result[["rank", "doc_id", "title", "score"]].copy()
     display["graded_relevance"] = display.doc_id.map(judged).fillna(0).astype(int)
     st.dataframe(display.head(10), hide_index=True, use_container_width=True)
