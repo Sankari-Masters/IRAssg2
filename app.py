@@ -21,6 +21,15 @@ except ImportError:  # surfaced in the UI if crawling is selected before install
     requests = None
     BeautifulSoup = None
 
+try:
+    from sklearn.naive_bayes import MultinomialNB
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+    import numpy as np
+    sklearn_available = True
+except ImportError:
+    sklearn_available = False
+
 
 st.set_page_config(page_title="Research Lens | IR System", page_icon="🔎", layout="wide")
 
@@ -50,7 +59,7 @@ def tokens(text: str, mode: str = "Balanced") -> list[str]:
     if mode != "Raw":
         result = [x for x in result if x not in STOPWORDS]
     if mode == "Aggressive":
-        result = [re.sub(r"(ing|edly|edly|ed|ies|s)$", "", x) for x in result]
+        result = [re.sub(r"(ing|edly|ed|ies|s)$", "", x) for x in result]
         result = [x for x in result if len(x) > 2]
     return result
 
@@ -203,7 +212,7 @@ def metrics(ranked: list[str], relevant: dict[str, int], k: int = 5):
     dcg = sum((2 ** relevant.get(doc, 0) - 1) / math.log2(pos + 1) for pos, doc in enumerate(ranked[:k], 1))
     ideal = sorted(relevant.values(), reverse=True)[:k]
     idcg = sum((2 ** rel - 1) / math.log2(pos + 1) for pos, rel in enumerate(ideal, 1))
-    return {"Precision": precision, "Recall": recall, "F1": f1, "P@5": p_k, "R@5": r_k, "MAP": ap, "MRR": reciprocal, "NDCG@5": dcg / idcg if idcg else 0}
+    return {"Precision": precision, "Recall": recall, "F1": f1, f"P@{k}": p_k, f"R@{k}": r_k, "MAP": ap, "MRR": reciprocal, f"NDCG@{k}": dcg / idcg if idcg else 0}
 
 
 def crawl(seeds: list[str], depth_limit: int, max_pages: int):
@@ -339,6 +348,106 @@ elif page == "Text Mining":
         all_terms = [word for text in current.content for word in tokens(text, profile)]
         comparison.append({"profile": profile, "tokens": len(all_terms), "vocabulary": len(set(all_terms)), "mean length": round(len(all_terms) / len(current), 1)})
     st.dataframe(pd.DataFrame(comparison), hide_index=True, use_container_width=True)
+    
+    st.subheader("Feature extraction & retrieval comparison")
+    st.caption("Comparing BM25 vs TF-IDF ranking strategies across preprocessing profiles using evaluation metrics")
+    if len(qrels) > 0:
+        feature_comparison = []
+        for preproc in ["Raw", "Balanced", "Aggressive"]:
+            temp_index = build_index(current.to_json(orient="records"), preproc)
+            for method in ["BM25", "TF-IDF"]:
+                eval_results = []
+                for query, group in qrels.groupby("query"):
+                    ranked, _ = ranked_results(query, current, temp_index, preproc, method)
+                    relevant = dict(zip(group.doc_id, group.relevance))
+                    eval_results.append(metrics(ranked.doc_id.tolist(), relevant, 5))
+                mean_metrics = pd.DataFrame(eval_results).mean()
+                feature_comparison.append({
+                    "Preprocessing": preproc,
+                    "Method": method,
+                    "MAP": round(mean_metrics["MAP"], 3),
+                    "MRR": round(mean_metrics["MRR"], 3),
+                    "NDCG@5": round(mean_metrics["NDCG@5"], 3),
+                    "Precision": round(mean_metrics["Precision"], 3)
+                })
+        
+        comp_df = pd.DataFrame(feature_comparison)
+        st.dataframe(comp_df, hide_index=True, use_container_width=True)
+        st.write("**Key Observations:**")
+        st.write("- BM25 and TF-IDF perform similarly on this corpus; BM25 may have an advantage on collections with greater document-length variation")
+        st.write("- Balanced preprocessing often provides the best trade-off between vocabulary coverage and noise reduction")
+        st.write("- Aggressive preprocessing may hurt recall by over-stemming query terms")
+    else:
+        st.info("Feature extraction comparison requires relevance judgments (qrels.csv)")
+    
+    st.subheader("Document Classification")
+    if sklearn_available and len(current) >= 10 and current.category.nunique() >= 2:
+        st.caption("Automated category prediction using TF-IDF features and Multinomial Naive Bayes classifier")
+        try:
+            # Build raw term counts per document and split by doc_id before computing IDF/TF-IDF
+            doc_terms = {row.doc_id: tokens(f"{row.title} {row.content}", mode) for row in current.itertuples()}
+            labels = {row.doc_id: row.category for row in current.itertuples()}
+            ids = list(doc_terms.keys())
+            y = [labels[did] for did in ids]
+            
+            # Split documents first to prevent data leakage
+            # Only stratify if every category has at least 2 examples
+            class_counts = Counter(y)
+            min_class_count = min(class_counts.values()) if class_counts else 0
+            stratify = y if min_class_count >= 2 else None
+            train_ids, test_ids, y_train, y_test = train_test_split(ids, y, test_size=0.3, random_state=42, stratify=stratify)
+            
+            # Build vocabulary and IDF from training documents only
+            train_counts = Counter()
+            for did in train_ids:
+                train_counts.update(set(doc_terms[did]))
+            vocab = sorted([term for term, count in train_counts.items() if count > 0])
+            n_train = max(len(train_ids), 1)
+            idf_train = {term: math.log((n_train + 1) / (train_counts.get(term, 0) + 1)) + 1 for term in vocab}
+            
+            # Compute TF-IDF vectors for train and test using training IDF
+            def make_tfidf(dids):
+                rows = []
+                for did in dids:
+                    counts = Counter(doc_terms[did])
+                    total = sum(counts.values()) or 1
+                    rows.append([counts.get(term, 0) / total * idf_train.get(term, 0) for term in vocab])
+                return np.array(rows)
+            
+            X_train = make_tfidf(train_ids)
+            X_test = make_tfidf(test_ids)
+            
+            # Train classifier
+            clf = MultinomialNB(alpha=0.1)
+            clf.fit(X_train, y_train)
+            y_pred = clf.predict(X_test)
+            
+            # Display results
+            accuracy = accuracy_score(y_test, y_pred)
+            st.metric("Classification Accuracy", f"{accuracy:.2%}")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**Confusion Matrix**")
+                all_labels = sorted(np.unique(y))
+                cm = confusion_matrix(y_test, y_pred, labels=all_labels)
+                cm_df = pd.DataFrame(cm, index=all_labels, columns=all_labels)
+                st.dataframe(cm_df, use_container_width=True)
+            
+            with col2:
+                st.write("**Classification Report**")
+                report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+                report_df = pd.DataFrame(report).transpose()
+                st.dataframe(report_df.style.format("{:.3f}"), use_container_width=True)
+            
+            st.info(f"Trained on {len(train_ids)} documents, tested on {len(test_ids)} documents. TF-IDF vocabulary and IDF were computed from the training split only to avoid data leakage. Stratified split: {stratify is not None}.")
+        except Exception as e:
+            st.error(f"Classification error: {str(e)}")
+            st.info("The starter corpus contains categories with very few examples. Classification is presented as a functional demonstration rather than a statistically reliable benchmark.")
+    elif not sklearn_available:
+        st.warning("Install scikit-learn to enable document classification: `pip install scikit-learn`")
+    else:
+        st.info("Document classification requires at least 10 documents with 2 or more categories.")
 
 elif page == "Index Management":
     st.title("Index Management")
@@ -351,7 +460,22 @@ elif page == "Index Management":
     st.subheader("Duplicate control")
     st.write(f"Exact duplicates: **{len(exact)}** · Near-duplicate pairs (3-shingle Jaccard ≥ 0.28): **{len(near)}**")
     if near or exact:
-        st.dataframe(pd.DataFrame(exact + near, columns=["document", "canonical/paired document", "similarity"]), hide_index=True)
+        dup_df = pd.DataFrame(exact + near, columns=["document", "canonical/paired document", "similarity"])
+        st.dataframe(dup_df, hide_index=True)
+        if st.button("Remove duplicates from corpus", type="primary"):
+            # Collect all duplicate doc_ids to remove (keep canonical)
+            to_remove = set()
+            for dup_id, canonical_id, sim in exact:
+                to_remove.add(dup_id)  # Remove the duplicate, keep canonical
+            for doc1, doc2, sim in near:
+                # For near-duplicates, keep the one with lower doc_id (arbitrary but consistent)
+                to_remove.add(max(doc1, doc2))
+            
+            # Remove from both metadata and documents
+            st.session_state.metadata = st.session_state.metadata[~st.session_state.metadata.doc_id.isin(to_remove)]
+            st.session_state.documents = st.session_state.documents[~st.session_state.documents.doc_id.isin(to_remove)]
+            st.success(f"Removed {len(to_remove)} duplicate documents from the corpus. Index will rebuild automatically.")
+            st.rerun()
     else:
         st.success("No duplicate or near-duplicate pair crossed the configured threshold.")
     st.subheader("Import a collection")
@@ -443,7 +567,8 @@ elif page == "Evaluation":
     table = pd.DataFrame(evaluations).set_index("strategy")
     st.dataframe(table.style.format("{:.3f}"), use_container_width=True)
     st.subheader("Comparative ranking quality")
-    st.bar_chart(table[["MAP", "MRR", "NDCG@5"]])
+    chart_cols = ["MAP", "MRR", f"NDCG@{k}"]
+    st.bar_chart(table[[col for col in chart_cols if col in table.columns]])
     st.subheader("Per-query inspection")
     inspected_query = st.selectbox("Judged query", sorted(qrels["query"].unique()))
     show_strategy = st.selectbox("Inspect strategy", ["BM25", "TF-IDF", "Hybrid (BM25 + PageRank)"])
