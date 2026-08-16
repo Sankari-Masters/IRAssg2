@@ -384,8 +384,8 @@ score(D_seed, D_candidate) = 0.85 × cosine_similarity + 0.15 × category_match
 | Raw | TF-IDF | 0.500 | 1.000 | 0.677 | 0.391 |
 | Balanced | BM25 | 0.500 | 1.000 | 0.677 | 0.391 |
 | Balanced | TF-IDF | 0.500 | 1.000 | 0.677 | 0.391 |
-| **Aggressive** | **BM25** | **0.548** | **1.000** | **0.711** | **0.391** |
-| **Aggressive** | **TF-IDF** | **0.548** | **1.000** | **0.711** | **0.391** |
+| **Aggressive** | **BM25** | **0.548** | **1.000** | **0.711** | **0.407** |
+| **Aggressive** | **TF-IDF** | **0.548** | **1.000** | **0.711** | **0.407** |
 
 **Observations:**
 
