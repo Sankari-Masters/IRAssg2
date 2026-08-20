@@ -725,28 +725,67 @@ Coverage    Features      Speed      Utility     Discovery      Evidence
 **Note:** Screenshots will be captured from BITS Virtual Lab execution. The following placeholders describe the expected content:
 
 ### 10.1 Dashboard
-*Corpus statistics: 18 documents, 12 sources, 321 vocabulary terms (Balanced preprocessing), 52 link edges*
+**Local BITS Virtual Lab execution** - confirms that the application starts from the lab terminal and displays the corpus dashboard.
+
+![Local BITS Virtual Lab execution and dashboard](<screenshots/01_virtual_lab_execution_local.png>)
+
+**Deployed Streamlit dashboard** - shows the hosted workflow and collection overview.
+
+![Deployed Streamlit dashboard](<screenshots/02_dashboard_streamlit.png>)
 
 ### 10.2 Crawl & Collect
 *Web crawling interface with BFS, robots.txt compliance, and duplicate URL handling*
+![Local Stanford IR-book crawl](<screenshots/03_crawl_local.png>)
+
+![Deployed crawl and duplicate URL handling](<screenshots/03_crawl_streamlit.png>)
+
 
 ### 10.3 Text Mining
 *Preprocessing comparison, document profiling, TF-IDF keywords, and document classification*
 
+![Local text preprocessing and frequent terms](<screenshots/04_text_mining_local.png>)
+
+![Deployed document profile and TF-IDF keywords](<screenshots/04_text_mining_streamlit.png>)
+
 ### 10.4 Index Management
 *Duplicate detection and removal, CSV import, corpus reset*
+
+![Local index management and CSV import](<screenshots/05_index_mgmt_local.png>)
+
+![Deployed index management and imported records](<screenshots/05_index_mgmt_streamlit.png>)
+
 
 ### 10.5 Search
 *BM25 ranking with PageRank scores and ranking explanation chart*
 
+![Local BM25 search and ranked results](<screenshots/06_search_local.png>)
+
+![Deployed hybrid recommendations](<screenshots/06_search_streamlit.png>)
+
 ### 10.6 Recommendations
 *Content-based Top-5 recommendations with similarity scores*
+
+![Local content-based recommendations](<screenshots/07_recomendation_local.png>)
+
+![Deployed hybrid recommendations](<screenshots/07_recomendation_streamlit.png>)
+
+
 
 ### 10.7 Evaluation
 *Comparative metrics across BM25, TF-IDF, and Hybrid ranking strategies*
 
+![Local evaluation dashboard](<screenshots/09_evaluation_local.png>)
+
+![Deployed evaluation dashboard](<screenshots/09_evaluation_streamlit.png>)
+
+
 ### 10.8 Performance & Inference
 *Search latency analytics and required inference discussions*
+
+![Local performance analytics](<screenshots/10_performance_local.png>)
+
+![Deployed performance analytics](<screenshots/10_performance_streamlit.png>)
+
 
 ---
 
